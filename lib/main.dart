@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'screens/login/login_screen.dart';
+import 'core/router.dart';
+import 'core/theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Inisialisasi Supabase
   await Supabase.initialize(
-    url: 'URL_SUPABASE_ANDA', // Ambil dari Project Settings > API di Supabase
-    anonKey: 'ANON_KEY_ANDA', // Ambil dari Project Settings > API di Supabase
+    url: 'https://yzivskishncxptyiphls.supabase.co',
+    anonKey:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6aXZza2lzaG5jeHB0eWlwaGxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MjI1NDIsImV4cCI6MjA5MzQ5ODU0Mn0.LXyU2XrDg_9YWBVyEf-Zbjxr3dVuZCC4vF0tu31iHrI',
   );
 
   runApp(const MyApp());
@@ -19,10 +20,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'Eco-Quest',
-      theme: ThemeData(primarySwatch: Colors.green),
-      home: const LoginScreen(),
+      debugShowCheckedModeBanner: false,
+      theme: buildAppTheme(),
+      routerConfig: router,
     );
   }
 }

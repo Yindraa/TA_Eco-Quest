@@ -41,6 +41,9 @@ dependencies:
   # Fitur Kamera & Galeri
   image_picker: ^1.0.0
 
+  # Navigasi
+  go_router: ^14.0.0
+
   # UI & Animasi (Pengganti Framer Motion di Flutter)
   flutter_animate: ^4.5.0
   google_fonts: ^6.0.0
