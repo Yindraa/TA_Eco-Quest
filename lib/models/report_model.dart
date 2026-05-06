@@ -37,9 +37,9 @@ class ReportModel {
 
   static String statusLabel(String status) {
     return switch (status) {
-      'pending'  => 'Menunggu',
-      'claimed'  => 'Diklaim',
-      'resolved' => 'Diselesaikan',
+      'pending'  => 'Menunggu Diambil',
+      'claimed'  => 'Sedang Dikerjakan',
+      'resolved' => 'Menunggu Validasi',
       'valid'    => 'Tervalidasi',
       'rejected' => 'Ditolak',
       _          => 'Tidak Diketahui',

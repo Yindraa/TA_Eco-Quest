@@ -17,19 +17,29 @@ class MainScaffold extends StatefulWidget {
 class _MainScaffoldState extends State<MainScaffold> {
   int _currentIndex = 0;
 
-  // Tab order: Beranda, Peta Misi, [FAB Lapor], Leaderboard, Profil
-  static const _screens = [
-    HomeScreen(),
-    PetaScreen(),
-    LeaderboardScreen(),
-    ProfilScreen(),
-  ];
+  // Setiap kali user kembali ke tab Beranda, nilai ini naik →
+  // HomeScreen mendeteksinya via didUpdateWidget dan refresh datanya.
+  int _homeRefreshKey = 0;
+
+  List<Widget> get _screens => [
+        HomeScreen(refreshKey: _homeRefreshKey),
+        const PetaScreen(),
+        const LeaderboardScreen(),
+        const ProfilScreen(),
+      ];
 
   void _openLapor() {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const LaporScreen()),
     );
+  }
+
+  void _onTabTapped(int index) {
+    setState(() {
+      _currentIndex = index;
+      if (index == 0) _homeRefreshKey++;
+    });
   }
 
   @override
@@ -91,7 +101,7 @@ class _MainScaffoldState extends State<MainScaffold> {
   ) {
     final isActive = _currentIndex == index;
     return GestureDetector(
-      onTap: () => setState(() => _currentIndex = index),
+      onTap: () => _onTabTapped(index),
       behavior: HitTestBehavior.opaque,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
