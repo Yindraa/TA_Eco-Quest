@@ -9,6 +9,7 @@ class UserModel {
   final int levelMinPoints;
   final int levelMaxPoints;
   final DateTime lastActivityAt;
+  final int avatarId;
 
   const UserModel({
     required this.id,
@@ -21,6 +22,7 @@ class UserModel {
     required this.levelMinPoints,
     required this.levelMaxPoints,
     required this.lastActivityAt,
+    this.avatarId = 0,
   });
 
   factory UserModel.fromMap(Map<String, dynamic> map) {
@@ -39,6 +41,7 @@ class UserModel {
             map['last_activity_at'] as String? ?? '',
           ) ??
           DateTime.now(),
+      avatarId: (map['avatar_id'] as num?)?.toInt() ?? 0,
     );
   }
 

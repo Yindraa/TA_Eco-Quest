@@ -21,4 +21,26 @@ class ProfileService {
       params: {'user_uuid': userId},
     );
   }
+
+  Future<void> updateFullName(String newName) async {
+    final userId = _supabase.auth.currentUser!.id;
+    await _supabase
+        .from('profiles')
+        .update({'full_name': newName})
+        .eq('id', userId);
+  }
+
+  Future<void> updateAvatar(int avatarId) async {
+    final userId = _supabase.auth.currentUser!.id;
+    await _supabase
+        .from('profiles')
+        .update({'avatar_id': avatarId})
+        .eq('id', userId);
+  }
+
+  Future<void> updatePassword(String newPassword) async {
+    await _supabase.auth.updateUser(
+      UserAttributes(password: newPassword),
+    );
+  }
 }

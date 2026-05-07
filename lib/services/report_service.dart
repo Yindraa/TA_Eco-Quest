@@ -66,6 +66,36 @@ class ReportService {
         .order('created_at', ascending: false);
   }
 
+  /// Hitung total laporan milik user (untuk ProfilScreen).
+  Future<int> getMyReportsCount() async {
+    final userId = _supabase.auth.currentUser!.id;
+    final data = await _supabase
+        .from('reports')
+        .select('report_id')
+        .eq('user_id', userId);
+    return (data as List).length;
+  }
+
+  /// Ambil semua laporan milik user dengan filter status opsional.
+  Future<List<Map<String, dynamic>>> getMyReports({
+    String? status,
+  }) async {
+    final userId = _supabase.auth.currentUser!.id;
+    if (status != null) {
+      return await _supabase
+          .from('reports')
+          .select('report_id, status, waste_size, created_at, image_url')
+          .eq('user_id', userId)
+          .eq('status', status)
+          .order('created_at', ascending: false);
+    }
+    return await _supabase
+        .from('reports')
+        .select('report_id, status, waste_size, created_at, image_url')
+        .eq('user_id', userId)
+        .order('created_at', ascending: false);
+  }
+
   /// Ambil misi pending Kecil yang tersedia untuk diambil user.
   Future<List<Map<String, dynamic>>> getAvailableMissions({
     int limit = 3,

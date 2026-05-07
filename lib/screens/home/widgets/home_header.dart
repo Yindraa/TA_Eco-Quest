@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../core/avatar_options.dart';
 import '../../../core/theme.dart';
 import '../../../models/user_model.dart';
 
@@ -22,17 +23,11 @@ class HomeHeader extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
           child: Row(
             children: [
-              CircleAvatar(
+              buildAvatarWidget(
+                avatarId: profile?.avatarId ?? 0,
                 radius: 24,
-                backgroundColor: Colors.white.withValues(alpha: 0.25),
-                child: Text(
-                  profile != null ? profile!.firstName[0].toUpperCase() : '?',
-                  style: GoogleFonts.poppins(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
+                borderColor: Colors.white.withValues(alpha: 0.4),
+                borderWidth: 2,
               ),
               const SizedBox(width: 14),
               Expanded(
