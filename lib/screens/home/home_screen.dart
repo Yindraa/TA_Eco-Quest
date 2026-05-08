@@ -78,7 +78,10 @@ class _HomeScreenState extends State<HomeScreen> {
     final userId = Supabase.instance.client.auth.currentUser!.id;
     return await Supabase.instance.client
         .from('reports')
-        .select('report_id, status, waste_size, created_at')
+        .select(
+          'report_id, status, waste_size, created_at, '
+          'image_url, resolved_image_url, description',
+        )
         .eq('user_id', userId)
         .order('created_at', ascending: false)
         .limit(5);

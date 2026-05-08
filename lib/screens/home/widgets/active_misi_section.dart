@@ -84,6 +84,8 @@ class ActiveMisiSection extends StatelessWidget {
     final createdAt =
         DateTime.tryParse(mission['created_at'] as String? ?? '') ??
         DateTime.now();
+    final lat = (mission['latitude'] as num?)?.toDouble();
+    final lng = (mission['longitude'] as num?)?.toDouble();
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -149,6 +151,8 @@ class ActiveMisiSection extends StatelessWidget {
                     reportId: reportId,
                     originalImageUrl: imageUrl,
                     wasteSize: wasteSize,
+                    originalLat: lat,
+                    originalLng: lng,
                   ),
                 ),
               );

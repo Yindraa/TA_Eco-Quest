@@ -81,17 +81,20 @@ class ReportService {
     String? status,
   }) async {
     final userId = _supabase.auth.currentUser!.id;
+    const cols =
+        'report_id, status, waste_size, created_at, '
+        'image_url, resolved_image_url, description';
     if (status != null) {
       return await _supabase
           .from('reports')
-          .select('report_id, status, waste_size, created_at, image_url')
+          .select(cols)
           .eq('user_id', userId)
           .eq('status', status)
           .order('created_at', ascending: false);
     }
     return await _supabase
         .from('reports')
-        .select('report_id, status, waste_size, created_at, image_url')
+        .select(cols)
         .eq('user_id', userId)
         .order('created_at', ascending: false);
   }
@@ -116,20 +119,31 @@ class ReportService {
     final userId = _supabase.auth.currentUser!.id;
     return await _supabase
         .from('reports')
-        .select('report_id, waste_size, image_url, created_at')
+        .select(
+          'report_id, waste_size, image_url, created_at, latitude, longitude',
+        )
         .eq('solver_id', userId)
         .eq('status', 'claimed')
         .order('created_at', ascending: false)
         .limit(3);
   }
 
-  /// Claim misi: ubah status pending → claimed, isi solver_id.
+  /// Claim misi via RPC (atomic, bypass RLS, cek status=pending).
   Future<void> claimMission(String reportId) async {
-    final userId = _supabase.auth.currentUser!.id;
-    await _supabase.from('reports').update({
-      'solver_id': userId,
-      'status': 'claimed',
-    }).eq('report_id', reportId);
+    final raw = await _supabase.rpc(
+      'claim_mission',
+      params: {'p_report_id': reportId},
+    );
+    final result =
+        raw is Map ? Map<String, dynamic>.from(raw) : <String, dynamic>{};
+    if (result['success'] != true) {
+      final msg = result['message'] as String? ?? '';
+      throw Exception(switch (msg) {
+        'already_claimed' => 'Misi ini sudah diklaim pengguna lain.',
+        'own_report' => 'Kamu tidak bisa mengklaim laporan milikmu sendiri.',
+        _ => 'Gagal mengambil misi. Coba lagi.',
+      });
+    }
   }
 
   /// Upload foto sesudah ke Supabase Storage.
@@ -147,14 +161,26 @@ class ReportService {
     return _supabase.storage.from('report-images').getPublicUrl(fileName);
   }
 
-  /// Selesaikan misi: simpan foto sesudah + ubah status → resolved.
-  Future<void> resolveReport({
+  /// Selesaikan misi via RPC (atomic, bypass RLS, cek solver=current user).
+  /// Mengembalikan jumlah EXP yang diperoleh solver.
+  Future<int> resolveReport({
     required String reportId,
     required String resolvedImageUrl,
   }) async {
-    await _supabase.from('reports').update({
-      'status': 'resolved',
-      'resolved_image_url': resolvedImageUrl,
-    }).eq('report_id', reportId);
+    final raw = await _supabase.rpc(
+      'resolve_mission',
+      params: {
+        'p_report_id': reportId,
+        'p_resolved_image_url': resolvedImageUrl,
+      },
+    );
+    final result =
+        raw is Map ? Map<String, dynamic>.from(raw) : <String, dynamic>{};
+    if (result['success'] != true) {
+      throw Exception(
+        'Gagal menyelesaikan misi. Pastikan misi masih aktif milikmu.',
+      );
+    }
+    return (result['exp_earned'] as num?)?.toInt() ?? 75;
   }
 }
