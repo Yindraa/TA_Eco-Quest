@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../core/app_notifier.dart';
 import '../../core/theme.dart';
 import '../../models/user_model.dart';
 import '../../services/profile_service.dart';
@@ -27,6 +28,17 @@ class _ProfilScreenState extends State<ProfilScreen> {
   void initState() {
     super.initState();
     _loadData();
+    homeRefreshNotifier.addListener(_onExternalRefresh);
+  }
+
+  @override
+  void dispose() {
+    homeRefreshNotifier.removeListener(_onExternalRefresh);
+    super.dispose();
+  }
+
+  void _onExternalRefresh() {
+    if (mounted) _loadData();
   }
 
   Future<void> _loadData() async {

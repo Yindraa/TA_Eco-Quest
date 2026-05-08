@@ -6,6 +6,7 @@ import '../../models/tree_model.dart';
 import '../../models/user_model.dart';
 import '../../services/profile_service.dart';
 import '../../services/report_service.dart';
+import '../../services/quiz_service.dart';
 import '../../services/tree_service.dart';
 import 'widgets/active_misi_section.dart';
 import 'widgets/gamification_card.dart';
@@ -13,6 +14,7 @@ import 'widgets/home_header.dart';
 import 'widgets/lapor_cta_button.dart';
 import 'widgets/misi_tersedia_card.dart';
 import 'widgets/recent_reports_section.dart';
+import 'widgets/tantangan_harian_card.dart';
 import 'widgets/tree_highlight_card.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -30,6 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late Future<List<Map<String, dynamic>>> _misionFuture;
   late Future<List<Map<String, dynamic>>> _availableMissionsFuture;
   late Future<TreeModel> _treeFuture;
+  late Future<Map<String, dynamic>?> _quizAttemptFuture;
 
   @override
   void initState() {
@@ -62,6 +65,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _misionFuture            = ReportService().getMyActiveMissions();
     _availableMissionsFuture = ReportService().getAvailableMissions();
     _treeFuture              = TreeService().getMyTree();
+    _quizAttemptFuture       = QuizService().getTodayAttempt();
   }
 
   Future<UserModel> _fetchProfile() async {
@@ -124,6 +128,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       const LaporCtaButton()
                           .animate()
                           .fadeIn(duration: 400.ms, delay: 260.ms),
+                      const SizedBox(height: 16),
+                      TantanganHarianCard(
+                        todayAttemptFuture: _quizAttemptFuture,
+                      ).animate().fadeIn(duration: 400.ms, delay: 280.ms),
                       const SizedBox(height: 16),
                       MisiTersediaCard(
                         availableMissionsFuture: _availableMissionsFuture,

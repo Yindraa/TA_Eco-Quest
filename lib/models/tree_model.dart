@@ -7,6 +7,8 @@ class TreeModel {
   final int nutritionPoints;
   final String healthStatus;
   final DateTime lastWateredAt;
+  final int dailyWaterCount;
+  final DateTime? dailyWaterDate;
 
   const TreeModel({
     required this.treeId,
@@ -15,6 +17,8 @@ class TreeModel {
     required this.nutritionPoints,
     required this.healthStatus,
     required this.lastWateredAt,
+    this.dailyWaterCount = 0,
+    this.dailyWaterDate,
   });
 
   factory TreeModel.fromMap(Map<String, dynamic> map) {
@@ -28,7 +32,23 @@ class TreeModel {
             map['last_watered_at'] as String? ?? '',
           ) ??
           DateTime.now(),
+      dailyWaterCount:
+          (map['daily_water_count'] as num?)?.toInt() ?? 0,
+      dailyWaterDate: map['daily_water_date'] != null
+          ? DateTime.tryParse(map['daily_water_date'] as String? ?? '')
+          : null,
     );
+  }
+
+  /// Jumlah siraman yang tersisa hari ini (maks 2)
+  int get remainingWaterings {
+    if (dailyWaterDate == null) return 2;
+    final todayUtc = DateTime.now().toUtc();
+    final wDateUtc = dailyWaterDate!.toUtc();
+    final sameDay = todayUtc.year == wDateUtc.year &&
+        todayUtc.month == wDateUtc.month &&
+        todayUtc.day == wDateUtc.day;
+    return sameDay ? (2 - dailyWaterCount).clamp(0, 2) : 2;
   }
 
   // ── Level Info ───────────────────────────────────────────────────────────

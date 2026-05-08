@@ -609,12 +609,15 @@ class _PetaScreenState extends State<PetaScreen> {
         children: [
           Icon(icon, color: color, size: 18),
           const SizedBox(width: 8),
-          Text(
-            label,
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: color,
+          Expanded(
+            child: Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: color,
+              ),
+              softWrap: true,
             ),
           ),
         ],
