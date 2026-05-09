@@ -181,13 +181,13 @@ class _SelesaikanMisiScreenState extends State<SelesaikanMisiScreen> {
     try {
       final resolvedUrl =
           await _reportService.uploadResolvedImage(_resolvedImageBytes!);
-      final expEarned = await _reportService.resolveReport(
+      await _reportService.resolveReport(
         reportId: widget.reportId,
         resolvedImageUrl: resolvedUrl,
       );
       if (mounted) {
-        homeRefreshNotifier.value++; // refresh profil + pohon
-        _showSuccessSheet(expEarned);
+        homeRefreshNotifier.value++; // refresh active missions di beranda
+        _showSuccessSheet();
       }
     } on StorageException catch (e) {
       if (mounted) _showSnackBar('Gagal upload foto: ${e.message}');
@@ -201,7 +201,7 @@ class _SelesaikanMisiScreenState extends State<SelesaikanMisiScreen> {
   String _fmt(double m) =>
       m < 1000 ? '${m.toStringAsFixed(0)} m' : '${(m / 1000).toStringAsFixed(1)} km';
 
-  void _showSuccessSheet(int expEarned) {
+  void _showSuccessSheet() {
     showModalBottomSheet(
       context: context,
       isDismissible: false,
@@ -223,7 +223,7 @@ class _SelesaikanMisiScreenState extends State<SelesaikanMisiScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Misi Berhasil Diselesaikan! 🎉',
+              'Bukti Berhasil Dikirim! 🎉',
               style: GoogleFonts.poppins(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -232,34 +232,34 @@ class _SelesaikanMisiScreenState extends State<SelesaikanMisiScreen> {
             ),
             const SizedBox(height: 12),
 
-            // EXP badge
+            // Info menunggu validasi
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: const Color(0xFFFFF3CD),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFFFFC107)),
+                color: Colors.orange.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
               ),
-              child: Text(
-                '+$expEarned EXP diperoleh! ✨',
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF856404),
-                ),
+              child: Row(
+                children: [
+                  const Icon(Icons.pending_actions_rounded,
+                      color: Colors.orange, size: 20),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Menunggu validasi Operator.\n'
+                      'EXP akan diberikan setelah laporan divalidasi.',
+                      style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: Colors.orange[800],
+                          height: 1.4),
+                    ),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 12),
-
-            Text(
-              'Foto bukti telah dikirim dan sedang menunggu\n'
-              'validasi Operator.',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
-                  fontSize: 13, color: Colors.grey[600], height: 1.5),
             ),
             const SizedBox(height: 24),
+
             SizedBox(
               width: double.infinity,
               height: 50,

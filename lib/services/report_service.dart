@@ -162,8 +162,8 @@ class ReportService {
   }
 
   /// Selesaikan misi via RPC (atomic, bypass RLS, cek solver=current user).
-  /// Mengembalikan jumlah EXP yang diperoleh solver.
-  Future<int> resolveReport({
+  /// EXP diberikan saat operator validasi, bukan di sini.
+  Future<void> resolveReport({
     required String reportId,
     required String resolvedImageUrl,
   }) async {
@@ -181,6 +181,5 @@ class ReportService {
         'Gagal menyelesaikan misi. Pastikan misi masih aktif milikmu.',
       );
     }
-    return (result['exp_earned'] as num?)?.toInt() ?? 75;
   }
 }
