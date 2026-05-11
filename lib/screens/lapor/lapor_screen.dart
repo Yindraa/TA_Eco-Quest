@@ -30,10 +30,26 @@ class _LaporScreenState extends State<LaporScreen> {
   bool _isSubmitting = false;
   String? _locationError;
 
+  int _todayCount = 0;
+  bool _loadingQuota = true;
+
+  int get _remaining => (ReportService.dailyReportLimit - _todayCount).clamp(0, ReportService.dailyReportLimit);
+  bool get _limitReached => _remaining == 0;
+
   @override
   void initState() {
     super.initState();
     _getLocation();
+    _fetchQuota();
+  }
+
+  Future<void> _fetchQuota() async {
+    try {
+      final count = await _reportService.getMyTodayReportCount();
+      if (mounted) setState(() { _todayCount = count; _loadingQuota = false; });
+    } catch (_) {
+      if (mounted) setState(() => _loadingQuota = false);
+    }
   }
 
   @override
@@ -141,7 +157,10 @@ class _LaporScreenState extends State<LaporScreen> {
             ? null
             : _descriptionController.text.trim(),
       );
-      if (mounted) _showSuccessSheet();
+      if (mounted) {
+        setState(() { _todayCount++; });
+        _showSuccessSheet();
+      }
     } on StorageException catch (e) {
       if (mounted) {
         _showSnackBar(
@@ -151,7 +170,14 @@ class _LaporScreenState extends State<LaporScreen> {
         );
       }
     } catch (e) {
-      if (mounted) _showSnackBar('Gagal mengirim laporan: ${e.toString()}');
+      final msg = e.toString();
+      if (mounted) {
+        _showSnackBar(
+          msg.contains('daily_limit_reached')
+              ? 'Kamu sudah mencapai batas ${ReportService.dailyReportLimit} laporan hari ini.'
+              : 'Gagal mengirim laporan: $msg',
+        );
+      }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -245,7 +271,11 @@ class _LaporScreenState extends State<LaporScreen> {
   }
 
   bool get _canSubmit =>
-      _imageBytes != null && _position != null && _selectedSize != null;
+      _imageBytes != null &&
+      _position != null &&
+      _selectedSize != null &&
+      !_limitReached &&
+      !_loadingQuota;
 
   // ── Build ────────────────────────────────────────────────────────────────
 
@@ -264,6 +294,38 @@ class _LaporScreenState extends State<LaporScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Banner limit harian
+                      if (_limitReached) ...[
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                                color: Colors.red.withValues(alpha: 0.3)),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.block_rounded,
+                                  color: Colors.red, size: 20),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  'Kamu sudah membuat ${ReportService.dailyReportLimit} laporan hari ini. '
+                                  'Kembali lagi besok!',
+                                  style: GoogleFonts.poppins(
+                                      fontSize: 12,
+                                      color: Colors.red[700],
+                                      height: 1.4),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                      ],
+
                       _sectionLabel('Foto Sampah', required: true),
                       const SizedBox(height: 10),
                       CameraPreviewWidget(
@@ -389,25 +451,59 @@ class _LaporScreenState extends State<LaporScreen> {
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(8, 4, 20, 20),
+          padding: const EdgeInsets.fromLTRB(8, 4, 16, 20),
           child: Row(
             children: [
               IconButton(
-                icon: const Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  color: Colors.white,
-                  size: 20,
-                ),
+                icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                    color: Colors.white, size: 20),
                 onPressed: () => Navigator.pop(context),
               ),
-              Text(
-                'Lapor Sampah',
-                style: GoogleFonts.poppins(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+              Expanded(
+                child: Text(
+                  'Lapor Sampah',
+                  style: GoogleFonts.poppins(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
               ),
+              // Kuota harian
+              if (!_loadingQuota)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: _limitReached
+                        ? Colors.red.withValues(alpha: 0.3)
+                        : Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        _limitReached
+                            ? Icons.block_rounded
+                            : Icons.assignment_outlined,
+                        color: Colors.white,
+                        size: 13,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        _limitReached
+                            ? 'Limit hari ini'
+                            : '$_remaining laporan tersisa',
+                        style: GoogleFonts.poppins(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
             ],
           ),
         ),

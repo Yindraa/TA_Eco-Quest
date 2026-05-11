@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/router.dart';
 import 'core/theme.dart';
+import 'services/notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -11,6 +12,8 @@ Future<void> main() async {
     anonKey:
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6aXZza2lzaG5jeHB0eWlwaGxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MjI1NDIsImV4cCI6MjA5MzQ5ODU0Mn0.LXyU2XrDg_9YWBVyEf-Zbjxr3dVuZCC4vF0tu31iHrI',
   );
+
+  await NotificationService.initialize();
 
   runApp(const MyApp());
 }

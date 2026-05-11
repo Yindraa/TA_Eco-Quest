@@ -22,6 +22,7 @@ class PohonScreen extends StatefulWidget {
 class _PohonScreenState extends State<PohonScreen> {
   TreeModel? _tree;
   int _currentExp = 0;
+  int _currentStreak = 0;
   bool _loading = true;
 
   @override
@@ -34,16 +35,19 @@ class _PohonScreenState extends State<PohonScreen> {
     if (!mounted) return;
     setState(() => _loading = true);
     try {
+      // Terapkan decay dulu sebelum fetch tree
+      await TreeService().applyDecay();
+
       final results = await Future.wait([
         TreeService().getMyTree(),
-        ProfileService()
-            .getCurrentProfile()
-            .then((p) => p.totalPoints),
+        ProfileService().getCurrentProfile(),
       ]);
       if (!mounted) return;
+      final profile = results[1] as dynamic;
       setState(() {
         _tree = results[0] as TreeModel;
-        _currentExp = results[1] as int;
+        _currentExp = profile.totalPoints as int;
+        _currentStreak = profile.currentStreak as int;
         _loading = false;
       });
     } catch (_) {
@@ -86,6 +90,7 @@ class _PohonScreenState extends State<PohonScreen> {
                     PohonWaterButton(
                       tree: tree,
                       currentExp: _currentExp,
+                      currentStreak: _currentStreak,
                       onWatered: _loadData,
                     ),
                     const SizedBox(height: 16),

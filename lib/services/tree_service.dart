@@ -7,23 +7,54 @@ class TreeService {
 
   Future<TreeModel> getMyTree() async {
     final userId = _supabase.auth.currentUser!.id;
-    final data = await _supabase
+
+    // Coba ambil pohon yang ada
+    final existing = await _supabase
+        .from('virtual_trees')
+        .select()
+        .eq('user_id', userId)
+        .maybeSingle();
+
+    if (existing != null) return TreeModel.fromMap(existing);
+
+    // Fallback: buat pohon baru jika trigger DB belum jalan
+    await _supabase.from('virtual_trees').insert({
+      'user_id': userId,
+      'tree_level': 1,
+      'nutrition_points': 0,
+      'health_status': 'healthy',
+      'last_watered_at': DateTime.now().toIso8601String(),
+    });
+
+    final created = await _supabase
         .from('virtual_trees')
         .select()
         .eq('user_id', userId)
         .single();
-    return TreeModel.fromMap(data);
+    return TreeModel.fromMap(created);
   }
 
-  Future<Map<String, dynamic>> waterTree() async {
+  /// Terapkan decay harian (idempotent — aman dipanggil tiap buka screen).
+  Future<void> applyDecay() async {
     final userId = _supabase.auth.currentUser!.id;
-    // Kirim tanggal UTC agar konsisten dengan DATE() di PostgreSQL
+    try {
+      await _supabase
+          .rpc('apply_tree_decay', params: {'p_user_id': userId});
+    } catch (e) {
+      debugPrint('applyDecay error: $e');
+    }
+  }
+
+  /// Siram pohon. [currentStreak] dipakai untuk streak bonus (+25 jika ≥3).
+  Future<Map<String, dynamic>> waterTree({int currentStreak = 0}) async {
+    final userId = _supabase.auth.currentUser!.id;
     final todayUtc =
         DateTime.now().toUtc().toIso8601String().substring(0, 10);
     try {
       final raw = await _supabase.rpc('water_my_tree', params: {
         'p_user_id': userId,
         'p_date': todayUtc,
+        'p_streak': currentStreak,
       });
       if (raw is Map) return Map<String, dynamic>.from(raw);
       return {'success': false};

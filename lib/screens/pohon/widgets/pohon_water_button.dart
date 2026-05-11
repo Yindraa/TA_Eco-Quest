@@ -8,13 +8,15 @@ import '../../../services/tree_service.dart';
 
 class PohonWaterButton extends StatefulWidget {
   final TreeModel tree;
-  final int currentExp; // tidak dipakai untuk deduction, hanya info
+  final int currentExp;
+  final int currentStreak;
   final VoidCallback onWatered;
 
   const PohonWaterButton({
     super.key,
     required this.tree,
     required this.currentExp,
+    required this.currentStreak,
     required this.onWatered,
   });
 
@@ -50,18 +52,25 @@ class _PohonWaterButtonState extends State<PohonWaterButton> {
     if (_watering || !_canWater) return;
     setState(() => _watering = true);
 
-    final result = await TreeService().waterTree();
+    final result =
+        await TreeService().waterTree(currentStreak: widget.currentStreak);
     if (!mounted) return;
 
     if (result['success'] == true) {
+      final gained = result['nutrition_gained'] as int? ?? 20;
+      final bonus = result['streak_bonus'] as bool? ?? false;
       setState(() {
         _watering = false;
         _localRemaining = (_localRemaining - 1).clamp(0, 2);
       });
       homeRefreshNotifier.value++;
       widget.onWatered();
-      _snack('Pohon berhasil disiram! +20 poin nutrisi 💧',
-          const Color(0xFF2471A3));
+      _snack(
+        bonus
+            ? 'Pohon disiram! +$gained nutrisi 💧 (Streak Bonus!)'
+            : 'Pohon berhasil disiram! +$gained poin nutrisi 💧',
+        const Color(0xFF2471A3),
+      );
     } else {
       final msg = result['message'] as String? ?? '';
       if (msg == 'daily_limit_reached' || msg == 'already_watered_today') {
@@ -179,9 +188,18 @@ class _PohonWaterButtonState extends State<PohonWaterButton> {
       children: [
         // Info
         Text(
-          'Setiap siraman menambah +20 poin nutrisi pohon.',
-          style:
-              GoogleFonts.poppins(fontSize: 12, color: Colors.grey[600]),
+          widget.currentStreak >= 3
+              ? 'Streak ${widget.currentStreak} hari! Setiap siraman +25 nutrisi 🔥'
+              : 'Setiap siraman +20 nutrisi. Streak ≥3 hari → bonus +25!',
+          style: GoogleFonts.poppins(
+            fontSize: 12,
+            color: widget.currentStreak >= 3
+                ? Colors.orange[700]
+                : Colors.grey[600],
+            fontWeight: widget.currentStreak >= 3
+                ? FontWeight.w600
+                : FontWeight.normal,
+          ),
         ),
         const SizedBox(height: 4),
         Text(

@@ -23,6 +23,21 @@ class ReportService {
         .getPublicUrl(fileName);
   }
 
+  static const dailyReportLimit = 3;
+
+  /// Jumlah laporan user hari ini.
+  Future<int> getMyTodayReportCount() async {
+    final userId = _supabase.auth.currentUser!.id;
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    final res = await _supabase
+        .from('reports')
+        .select('report_id')
+        .eq('user_id', userId)
+        .gte('created_at', '${today}T00:00:00')
+        .lte('created_at', '${today}T23:59:59');
+    return (res as List).length;
+  }
+
   Future<void> createReport({
     required double latitude,
     required double longitude,
@@ -31,6 +46,13 @@ class ReportService {
     String? description,
   }) async {
     final userId = _supabase.auth.currentUser!.id;
+
+    // Cek kuota harian sebelum insert
+    final count = await getMyTodayReportCount();
+    if (count >= dailyReportLimit) {
+      throw Exception('daily_limit_reached');
+    }
+
     await _supabase.from('reports').insert({
       'user_id': userId,
       'latitude': latitude,

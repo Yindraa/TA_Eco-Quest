@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme.dart';
 import '../../lapor/lapor_detail_screen.dart';
+import '../../profil/semua_laporan_screen.dart';
 
 class RecentReportsSection extends StatelessWidget {
   final Future<List<Map<String, dynamic>>> reportsFuture;
@@ -34,12 +35,20 @@ class RecentReportsSection extends StatelessWidget {
                   color: const Color(0xFF1A2E2A),
                 ),
               ),
-              Text(
-                'Lihat Semua',
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w600,
+              GestureDetector(
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const SemuaLaporanScreen(),
+                  ),
+                ),
+                child: Text(
+                  'Lihat Semua',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
