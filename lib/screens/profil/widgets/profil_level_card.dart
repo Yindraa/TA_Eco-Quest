@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme.dart';
 import '../../../models/user_model.dart';
+import 'exp_history_sheet.dart';
 
 class ProfilLevelCard extends StatelessWidget {
   final UserModel profile;
@@ -100,6 +101,31 @@ class ProfilLevelCard extends StatelessWidget {
                         fontSize: 11, color: Colors.grey[500]),
                   ),
               ],
+            ),
+            const SizedBox(height: 10),
+            Divider(color: Colors.grey[100], height: 1),
+            const SizedBox(height: 10),
+            GestureDetector(
+              onTap: () => showExpHistorySheet(context),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.bolt_rounded,
+                      size: 14, color: AppColors.primary),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Lihat riwayat perolehan EXP',
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  const Icon(Icons.arrow_forward_rounded,
+                      size: 13, color: AppColors.primary),
+                ],
+              ),
             ),
           ],
         ),

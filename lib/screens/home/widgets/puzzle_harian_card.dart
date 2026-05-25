@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../quiz/daily_quiz_screen.dart';
+import '../../puzzle/puzzle_screen.dart';
 
-class TantanganHarianCard extends StatelessWidget {
+class PuzzleHarianCard extends StatelessWidget {
   final Future<Map<String, dynamic>?> todayAttemptFuture;
   final bool compact;
 
-  const TantanganHarianCard({
+  const PuzzleHarianCard({
     super.key,
     required this.todayAttemptFuture,
     this.compact = false,
   });
 
-  void _openQuiz(BuildContext context) => Navigator.push(
+  void _openPuzzle(BuildContext context) => Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => const DailyQuizScreen()),
+        MaterialPageRoute(builder: (_) => const PuzzleScreen()),
       );
 
   @override
@@ -23,14 +23,12 @@ class TantanganHarianCard extends StatelessWidget {
       future: todayAttemptFuture,
       builder: (context, snap) {
         final isDone = snap.data != null;
-        final score = (snap.data?['score'] as num?)?.toInt() ?? 0;
-        final total =
-            (snap.data?['total_questions'] as num?)?.toInt() ?? 5;
+        final stars = (snap.data?['stars'] as num?)?.toInt() ?? 0;
         final exp = (snap.data?['exp_earned'] as num?)?.toInt() ?? 0;
 
         return compact
-            ? _buildCompact(context, isDone, score, total, exp)
-            : _buildFull(context, isDone, score, total, exp);
+            ? _buildCompact(context, isDone, stars, exp)
+            : _buildFull(context, isDone, stars, exp);
       },
     );
   }
@@ -40,27 +38,26 @@ class TantanganHarianCard extends StatelessWidget {
   Widget _buildFull(
     BuildContext context,
     bool isDone,
-    int score,
-    int total,
+    int stars,
     int exp,
   ) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: GestureDetector(
-        onTap: () => _openQuiz(context),
+        onTap: () => _openPuzzle(context),
         child: Container(
           padding: const EdgeInsets.all(18),
           decoration: _decoration(isDone),
           child: Row(
             children: [
-              _iconBox(isDone ? '✅' : '🧩'),
+              _iconBox(isDone ? '✅' : '🖼️'),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Tantangan Harian',
+                      'Puzzle Harian',
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -70,8 +67,8 @@ class TantanganHarianCard extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       isDone
-                          ? 'Selesai · $score/$total benar · +$exp EXP'
-                          : 'Jawab 5 soal, raih hingga 50 EXP!',
+                          ? '${'⭐' * stars}  ·  +$exp EXP'
+                          : 'Susun gambar lingkungan, raih hingga 50 EXP!',
                       style: GoogleFonts.poppins(
                         fontSize: 12,
                         color: Colors.white.withValues(alpha: 0.88),
@@ -82,7 +79,7 @@ class TantanganHarianCard extends StatelessWidget {
                       ClipRRect(
                         borderRadius: BorderRadius.circular(4),
                         child: LinearProgressIndicator(
-                          value: score / total,
+                          value: stars / 3,
                           minHeight: 5,
                           backgroundColor:
                               Colors.white.withValues(alpha: 0.3),
@@ -96,7 +93,7 @@ class TantanganHarianCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
-              _ctaChip(isDone ? 'Lihat' : 'Mulai'),
+              _ctaChip(isDone ? 'Lihat' : 'Main'),
             ],
           ),
         ),
@@ -109,12 +106,11 @@ class TantanganHarianCard extends StatelessWidget {
   Widget _buildCompact(
     BuildContext context,
     bool isDone,
-    int score,
-    int total,
+    int stars,
     int exp,
   ) {
     return GestureDetector(
-      onTap: () => _openQuiz(context),
+      onTap: () => _openPuzzle(context),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: _decoration(isDone),
@@ -122,10 +118,10 @@ class TantanganHarianCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            _iconBox(isDone ? '✅' : '🧩', size: 44, iconSize: 22),
+            _iconBox(isDone ? '✅' : '🖼️', size: 44, iconSize: 22),
             const SizedBox(height: 12),
             Text(
-              'Tantangan\nHarian',
+              'Puzzle\nHarian',
               style: GoogleFonts.poppins(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
@@ -135,7 +131,7 @@ class TantanganHarianCard extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              isDone ? '+$exp EXP · $score/$total ✓' : 'Jawab 5 soal!',
+              isDone ? '+$exp EXP · ${'⭐' * stars}' : 'Susun gambar!',
               style: GoogleFonts.poppins(
                 fontSize: 11,
                 color: Colors.white.withValues(alpha: 0.85),
@@ -144,7 +140,7 @@ class TantanganHarianCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 12),
-            _ctaChip(isDone ? 'Lihat' : 'Mulai', fontSize: 11),
+            _ctaChip(isDone ? 'Lihat' : 'Main', fontSize: 11),
           ],
         ),
       ),
@@ -156,8 +152,8 @@ class TantanganHarianCard extends StatelessWidget {
   BoxDecoration _decoration(bool isDone) => BoxDecoration(
         gradient: LinearGradient(
           colors: isDone
-              ? [const Color(0xFF27AE60), const Color(0xFF2ECC71)]
-              : [const Color(0xFFF39C12), const Color(0xFFE67E22)],
+              ? [const Color(0xFF1A5C38), const Color(0xFF27AE60)]
+              : [const Color(0xFF1565C0), const Color(0xFF1E88E5)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -165,8 +161,8 @@ class TantanganHarianCard extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: (isDone
-                    ? const Color(0xFF27AE60)
-                    : const Color(0xFFF39C12))
+                    ? const Color(0xFF1A5C38)
+                    : const Color(0xFF1565C0))
                 .withValues(alpha: 0.35),
             blurRadius: 16,
             offset: const Offset(0, 6),

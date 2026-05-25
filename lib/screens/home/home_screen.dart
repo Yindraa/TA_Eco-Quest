@@ -7,6 +7,7 @@ import '../../models/tree_model.dart';
 import '../../models/user_model.dart';
 import '../../services/profile_service.dart';
 import '../../services/report_service.dart';
+import '../../services/puzzle_service.dart';
 import '../../services/quiz_service.dart';
 import '../../services/tree_service.dart';
 import 'widgets/active_misi_section.dart';
@@ -15,6 +16,7 @@ import 'widgets/home_header.dart';
 import 'widgets/lapor_cta_button.dart';
 import 'widgets/misi_tersedia_card.dart';
 import 'widgets/recent_reports_section.dart';
+import 'widgets/puzzle_harian_card.dart';
 import 'widgets/tantangan_harian_card.dart';
 import 'widgets/tree_highlight_card.dart';
 
@@ -34,6 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late Future<List<Map<String, dynamic>>> _availableMissionsFuture;
   late Future<TreeModel> _treeFuture;
   late Future<Map<String, dynamic>?> _quizAttemptFuture;
+  late Future<Map<String, dynamic>?> _puzzleAttemptFuture;
 
   int _lastKnownLevel = 0;
 
@@ -69,6 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _availableMissionsFuture = ReportService().getAvailableMissions();
     _treeFuture              = TreeService().getMyTree();
     _quizAttemptFuture       = QuizService().getTodayAttempt();
+    _puzzleAttemptFuture     = PuzzleService().getTodayAttempt();
   }
 
   Future<UserModel> _fetchProfile() async {
@@ -228,8 +232,26 @@ class _HomeScreenState extends State<HomeScreen> {
                           .animate()
                           .fadeIn(duration: 400.ms, delay: 260.ms),
                       const SizedBox(height: 16),
-                      TantanganHarianCard(
-                        todayAttemptFuture: _quizAttemptFuture,
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: TantanganHarianCard(
+                                todayAttemptFuture: _quizAttemptFuture,
+                                compact: true,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: PuzzleHarianCard(
+                                todayAttemptFuture: _puzzleAttemptFuture,
+                                compact: true,
+                              ),
+                            ),
+                          ],
+                        ),
                       ).animate().fadeIn(duration: 400.ms, delay: 280.ms),
                       const SizedBox(height: 16),
                       MisiTersediaCard(
