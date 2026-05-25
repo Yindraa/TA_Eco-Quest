@@ -20,8 +20,9 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   final _authService        = AuthService();
 
-  bool _isLoading       = false;
-  bool _obscurePassword = true;
+  bool _isLoading         = false;
+  bool _obscurePassword   = true;
+  bool _isResettingEmail  = false;
 
   @override
   void dispose() {
@@ -72,6 +73,114 @@ class _LoginScreenState extends State<LoginScreen> {
       return 'Terlalu banyak percobaan. Tunggu beberapa saat.';
     }
     return 'Gagal masuk: $message';
+  }
+
+  void _showForgotPasswordSheet() {
+    final emailCtrl = TextEditingController(text: _emailController.text.trim());
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheet) => Padding(
+          padding: EdgeInsets.only(
+              bottom: MediaQuery.of(ctx).viewInsets.bottom),
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 36),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Lupa Password?',
+                  style: GoogleFonts.poppins(
+                      fontSize: 18, fontWeight: FontWeight.bold,
+                      color: AppColors.primary),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Masukkan email akunmu. Kami akan mengirimkan\nlink untuk mereset password.',
+                  style: GoogleFonts.poppins(
+                      fontSize: 12, color: Colors.grey[500], height: 1.5),
+                ),
+                const SizedBox(height: 20),
+                _buildField(
+                  controller: emailCtrl,
+                  label: 'Email',
+                  hint: 'contoh@email.com',
+                  icon: Icons.email_outlined,
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _isResettingEmail
+                        ? null
+                        : () async {
+                            final email = emailCtrl.text.trim();
+                            if (email.isEmpty) return;
+                            setSheet(() => _isResettingEmail = true);
+                            try {
+                              await Supabase.instance.client.auth
+                                  .resetPasswordForEmail(email);
+                              if (!ctx.mounted) return;
+                              Navigator.pop(ctx);
+                              _showSnackBar(
+                                  'Link reset password dikirim ke $email. Cek inboxmu!');
+                            } catch (_) {
+                              if (ctx.mounted) {
+                                _showSnackBar(
+                                    'Gagal mengirim email. Pastikan email sudah terdaftar.');
+                              }
+                            } finally {
+                              if (ctx.mounted) {
+                                setSheet(() => _isResettingEmail = false);
+                              }
+                            }
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: _isResettingEmail
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                                color: Colors.white, strokeWidth: 2),
+                          )
+                        : Text(
+                            'Kirim Link Reset',
+                            style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white),
+                          ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   void _showSnackBar(String message) {
@@ -223,7 +332,26 @@ class _LoginScreenState extends State<LoginScreen> {
             onToggle: () =>
                 setState(() => _obscurePassword = !_obscurePassword),
           ),
-          const SizedBox(height: 30),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: _showForgotPasswordSheet,
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 4),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: Text(
+                'Lupa Password?',
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
 
           CustomButton(
             text: 'Masuk',

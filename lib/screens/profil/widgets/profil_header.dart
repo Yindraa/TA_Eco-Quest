@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/avatar_options.dart';
 import '../../../core/theme.dart';
 import '../../../models/user_model.dart';
@@ -15,6 +16,17 @@ class ProfilHeader extends StatelessWidget {
     required this.onSettingsTap,
     required this.onAvatarTap,
   });
+
+  String _memberSince() {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+      'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
+    ];
+    final raw = Supabase.instance.client.auth.currentUser?.createdAt;
+    final date = raw != null ? DateTime.tryParse(raw) : null;
+    if (date == null) return '-';
+    return '${months[date.month - 1]} ${date.year}';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -106,6 +118,14 @@ class ProfilHeader extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
                   ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '📅 Bergabung sejak ${_memberSince()}',
+                style: GoogleFonts.poppins(
+                  fontSize: 11,
+                  color: Colors.white.withValues(alpha: 0.7),
                 ),
               ),
             ],

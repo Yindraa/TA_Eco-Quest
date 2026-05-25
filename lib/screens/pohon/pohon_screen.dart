@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme.dart';
 import '../../models/tree_model.dart';
+import '../../models/user_model.dart';
 import '../../services/profile_service.dart';
 import '../../services/tree_service.dart';
 import 'widgets/pohon_header.dart';
@@ -43,11 +44,11 @@ class _PohonScreenState extends State<PohonScreen> {
         ProfileService().getCurrentProfile(),
       ]);
       if (!mounted) return;
-      final profile = results[1] as dynamic;
+      final profile = results[1] as UserModel;
       setState(() {
         _tree = results[0] as TreeModel;
-        _currentExp = profile.totalPoints as int;
-        _currentStreak = profile.currentStreak as int;
+        _currentExp = profile.totalPoints;
+        _currentStreak = profile.currentStreak;
         _loading = false;
       });
     } catch (_) {

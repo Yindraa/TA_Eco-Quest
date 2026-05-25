@@ -120,8 +120,11 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.emoji_events_rounded,
-                      color: Colors.amber, size: 28),
+                  const Icon(
+                    Icons.emoji_events_rounded,
+                    color: Colors.amber,
+                    size: 28,
+                  ),
                   const SizedBox(width: 10),
                   Text(
                     'Leaderboard',
@@ -134,7 +137,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                   const Spacer(),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 4),
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(20),
@@ -152,7 +157,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Kompetisi mingguan para Eco-Warrior Manado',
+                'Top EXP para Eco-Warrior Manado',
                 style: GoogleFonts.poppins(
                   fontSize: 12,
                   color: Colors.white.withValues(alpha: 0.75),
@@ -166,8 +171,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   }
 
   Widget _buildContent(List<Map<String, dynamic>> data) {
-    final currentUserId =
-        Supabase.instance.client.auth.currentUser?.id ?? '';
+    final currentUserId = Supabase.instance.client.auth.currentUser?.id ?? '';
     final topThree = data.take(3).toList();
     final rest = data.skip(3).toList();
 
@@ -216,38 +220,29 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
               sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, i) {
-                    final item = rest[i];
-                    final rank =
-                        (item['rank'] as num?)?.toInt() ?? (i + 4);
-                    final name =
-                        item['full_name'] as String? ?? 'Pengguna';
-                    final points =
-                        (item['total_points'] as num?)?.toInt() ?? 0;
-                    final levelName =
-                        item['level_name'] as String? ?? '';
-                    final streak =
-                        (item['current_streak'] as num?)?.toInt() ?? 0;
-                    final isMe = item['id'] == currentUserId;
-                    final avatarId =
-                        (item['avatar_id'] as num?)?.toInt() ?? 0;
+                delegate: SliverChildBuilderDelegate((context, i) {
+                  final item = rest[i];
+                  final rank = (item['rank'] as num?)?.toInt() ?? (i + 4);
+                  final name = item['full_name'] as String? ?? 'Pengguna';
+                  final points = (item['total_points'] as num?)?.toInt() ?? 0;
+                  final levelName = item['level_name'] as String? ?? '';
+                  final streak = (item['current_streak'] as num?)?.toInt() ?? 0;
+                  final isMe = item['id'] == currentUserId;
+                  final avatarId = (item['avatar_id'] as num?)?.toInt() ?? 0;
 
-                    return LeaderboardRankCard(
-                      rank: rank,
-                      name: name,
-                      points: points,
-                      levelName: levelName,
-                      streak: streak,
-                      isMe: isMe,
-                      avatarId: avatarId,
-                    )
-                        .animate(delay: (i * 40).ms)
-                        .fadeIn(duration: 300.ms)
-                        .slideY(begin: 0.2, end: 0);
-                  },
-                  childCount: rest.length,
-                ),
+                  return LeaderboardRankCard(
+                        rank: rank,
+                        name: name,
+                        points: points,
+                        levelName: levelName,
+                        streak: streak,
+                        isMe: isMe,
+                        avatarId: avatarId,
+                      )
+                      .animate(delay: (i * 40).ms)
+                      .fadeIn(duration: 300.ms)
+                      .slideY(begin: 0.2, end: 0);
+                }, childCount: rest.length),
               ),
             ),
           ] else
@@ -263,8 +258,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     String currentUserId,
   ) {
     // Check if user is in top 3 (already on podium)
-    final isInTopThree =
-        top20.take(3).any((e) => e['id'] == currentUserId);
+    final isInTopThree = top20.take(3).any((e) => e['id'] == currentUserId);
     if (isInTopThree) {
       return Padding(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
@@ -310,13 +304,18 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
           ),
           child: Row(
             children: [
-              const Icon(Icons.info_outline_rounded,
-                  color: Colors.grey, size: 18),
+              const Icon(
+                Icons.info_outline_rounded,
+                color: Colors.grey,
+                size: 18,
+              ),
               const SizedBox(width: 10),
               Text(
                 'Kumpulkan EXP untuk masuk leaderboard!',
                 style: GoogleFonts.poppins(
-                    fontSize: 12, color: Colors.grey[500]),
+                  fontSize: 12,
+                  color: Colors.grey[500],
+                ),
               ),
             ],
           ),
@@ -339,7 +338,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
           color: AppColors.fieldFill,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.35), width: 1.5),
+            color: AppColors.primary.withValues(alpha: 0.35),
+            width: 1.5,
+          ),
           boxShadow: [
             BoxShadow(
               color: AppColors.primary.withValues(alpha: 0.08),
@@ -383,7 +384,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                       const SizedBox(width: 6),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 1),
+                          horizontal: 6,
+                          vertical: 1,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.primary,
                           borderRadius: BorderRadius.circular(8),
@@ -402,7 +405,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                   Text(
                     '$levelName  ·  🔥 $streak hari  ·  $points EXP',
                     style: GoogleFonts.poppins(
-                        fontSize: 11, color: Colors.grey[500]),
+                      fontSize: 11,
+                      color: Colors.grey[500],
+                    ),
                   ),
                 ],
               ),
@@ -419,8 +424,11 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.emoji_events_outlined,
-              size: 60, color: Colors.amber),
+          const Icon(
+            Icons.emoji_events_outlined,
+            size: 60,
+            color: Colors.amber,
+          ),
           const SizedBox(height: 16),
           Text(
             'Leaderboard Kosong',
@@ -434,8 +442,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
           Text(
             'Jadilah yang pertama di puncak!\nMulai laporkan sampah sekarang.',
             textAlign: TextAlign.center,
-            style:
-                GoogleFonts.poppins(fontSize: 13, color: Colors.grey[500]),
+            style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey[500]),
           ),
         ],
       ),

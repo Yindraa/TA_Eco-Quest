@@ -15,6 +15,7 @@ class LaporDetailScreen extends StatelessWidget {
   String? get _imageUrl => report['image_url'] as String?;
   String? get _resolvedImageUrl => report['resolved_image_url'] as String?;
   String? get _description => report['description'] as String?;
+  String? get _rejectionReason => report['rejection_reason'] as String?;
   DateTime get _createdAt =>
       DateTime.tryParse(report['created_at'] as String? ?? '') ??
       DateTime.now();
@@ -53,7 +54,55 @@ class LaporDetailScreen extends StatelessWidget {
                   _buildTimeline()
                       .animate()
                       .fadeIn(duration: 300.ms),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 12),
+
+                  // Banner alasan penolakan (dari Operator via web dashboard)
+                  if (_status == 'rejected' &&
+                      _rejectionReason != null &&
+                      _rejectionReason!.isNotEmpty) ...[
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.red[50],
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                            color: Colors.red[300]!.withValues(alpha: 0.6)),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(Icons.cancel_outlined,
+                              color: Colors.red[600], size: 18),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Alasan Penolakan',
+                                  style: GoogleFonts.poppins(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.red[700]),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  _rejectionReason!,
+                                  style: GoogleFonts.poppins(
+                                      fontSize: 12,
+                                      color: Colors.red[800],
+                                      height: 1.4),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ).animate().fadeIn(duration: 300.ms, delay: 60.ms),
+                    const SizedBox(height: 8),
+                  ],
+                  const SizedBox(height: 8),
 
                   // Foto laporan asli
                   if (_imageUrl != null && _imageUrl!.isNotEmpty) ...[
@@ -156,11 +205,13 @@ class LaporDetailScreen extends StatelessWidget {
   // ── Status Timeline ──────────────────────────────────────────────────────────
 
   Widget _buildTimeline() {
+    final isRejected = _status == 'rejected';
     final steps = [
-      ('Dilaporkan', true),
-      ('Diambil', _isClaimed),
-      ('Bukti\nDikirim', _status == 'resolved' || _status == 'valid'),
-      ('Divalidasi', _status == 'valid'),
+      ('Dilaporkan', true, null),
+      ('Diambil', _isClaimed || isRejected, null),
+      ('Bukti\nDikirim', _status == 'resolved' || _status == 'valid', null),
+      (isRejected ? 'Ditolak' : 'Divalidasi', _status == 'valid' || isRejected,
+          isRejected ? Colors.red[600]! : null),
     ];
 
     return Container(
@@ -179,7 +230,7 @@ class LaporDetailScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           for (int i = 0; i < steps.length; i++) ...[
-            _stepDot(steps[i].$1, steps[i].$2),
+            _stepDot(steps[i].$1, steps[i].$2, colorOverride: steps[i].$3),
             if (i < steps.length - 1)
               Expanded(
                 child: Padding(
@@ -187,7 +238,7 @@ class LaporDetailScreen extends StatelessWidget {
                   child: Container(
                     height: 2,
                     color: steps[i].$2 && steps[i + 1].$2
-                        ? AppColors.primary
+                        ? (steps[i + 1].$3 ?? AppColors.primary)
                         : Colors.grey[200],
                   ),
                 ),
@@ -198,14 +249,15 @@ class LaporDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _stepDot(String label, bool done) {
+  Widget _stepDot(String label, bool done, {Color? colorOverride}) {
+    final activeColor = colorOverride ?? AppColors.primary;
     return Column(
       children: [
         Container(
           width: 28,
           height: 28,
           decoration: BoxDecoration(
-            color: done ? AppColors.primary : Colors.grey[200],
+            color: done ? activeColor : Colors.grey[200],
             shape: BoxShape.circle,
           ),
           child: Icon(
@@ -223,7 +275,7 @@ class LaporDetailScreen extends StatelessWidget {
             style: GoogleFonts.poppins(
               fontSize: 9,
               fontWeight: done ? FontWeight.w600 : FontWeight.normal,
-              color: done ? AppColors.primary : Colors.grey[400],
+              color: done ? activeColor : Colors.grey[400],
               height: 1.3,
             ),
           ),

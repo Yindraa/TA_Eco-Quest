@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../core/app_notifier.dart';
 import '../../core/theme.dart';
 import '../../services/quiz_service.dart';
@@ -35,10 +37,35 @@ class _DailyQuizScreenState extends State<DailyQuizScreen> {
   int _expEarned = 0;
   bool _alreadyCompletedBeforeStart = false;
 
+  // ── Timer ────────────────────────────────────────────────────────────────────
+  static const _maxSeconds = 15;
+  Timer? _timer;
+  int _secondsLeft = _maxSeconds;
+
+  void _startTimer() {
+    _timer?.cancel();
+    _secondsLeft = _maxSeconds;
+    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted) { t.cancel(); return; }
+      if (_secondsLeft <= 1) {
+        t.cancel();
+        if (!_answered) _selectAnswer(''); // waktu habis → salah
+      } else {
+        setState(() => _secondsLeft--);
+      }
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     _init();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   Future<void> _init() async {
@@ -74,18 +101,22 @@ class _DailyQuizScreenState extends State<DailyQuizScreen> {
     }
   }
 
-  void _startQuiz() => setState(() {
-        _state = _QuizState.question;
-        _current = 0;
-        _score = 0;
-        _comboCount = 0;
-        _selected = null;
-        _answered = false;
-        _answerHistory = List.filled(_questions.length, null);
-      });
+  void _startQuiz() {
+    setState(() {
+      _state = _QuizState.question;
+      _current = 0;
+      _score = 0;
+      _comboCount = 0;
+      _selected = null;
+      _answered = false;
+      _answerHistory = List.filled(_questions.length, null);
+    });
+    _startTimer();
+  }
 
   void _selectAnswer(String letter) {
     if (_answered) return;
+    _timer?.cancel();
     final isCorrect =
         letter == (_questions[_current]['correct_answer'] as String? ?? '');
 
@@ -117,6 +148,7 @@ class _DailyQuizScreenState extends State<DailyQuizScreen> {
         _selected = null;
         _answered = false;
       });
+      _startTimer();
       return;
     }
 
@@ -185,6 +217,45 @@ class _DailyQuizScreenState extends State<DailyQuizScreen> {
                   answerHistory: _answerHistory,
                   currentIndex: _current,
                   totalQuestions: _questions.length,
+                ),
+                // Timer bar
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+                  child: Row(
+                    children: [
+                      Text(
+                        _answered ? '✓' : '$_secondsLeft',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: _secondsLeft <= 5 && !_answered
+                              ? Colors.red
+                              : AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 900),
+                            height: 6,
+                            child: LinearProgressIndicator(
+                              value: _answered
+                                  ? 0
+                                  : _secondsLeft / _maxSeconds,
+                              backgroundColor: Colors.grey[200],
+                              valueColor: AlwaysStoppedAnimation(
+                                _secondsLeft <= 5
+                                    ? Colors.red
+                                    : AppColors.primary,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 Expanded(
                   child: AnimatedSwitcher(

@@ -266,6 +266,59 @@ class _PetaScreenState extends State<PetaScreen> {
             onRefresh: _loadReports,
           ),
 
+          // Empty state saat tidak ada misi tersedia
+          if (!_isLoading && _markers.isEmpty)
+            Center(
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 40),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 24, vertical: 20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: const BoxDecoration(
+                        color: AppColors.fieldFill,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.map_outlined,
+                          size: 36, color: AppColors.primary),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Tidak Ada Misi Tersedia',
+                      style: GoogleFonts.poppins(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF1A2E2A),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Belum ada laporan sampah yang\nmenunggu untuk dibersihkan.',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: Colors.grey[500],
+                          height: 1.5),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
           const PetaMapLegend(),
 
           // FAB lokasiku (kanan bawah)

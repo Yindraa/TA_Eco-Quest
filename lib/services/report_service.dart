@@ -105,7 +105,7 @@ class ReportService {
     final userId = _supabase.auth.currentUser!.id;
     const cols =
         'report_id, status, waste_size, created_at, '
-        'image_url, resolved_image_url, description';
+        'image_url, resolved_image_url, description, rejection_reason';
     if (status != null) {
       return await _supabase
           .from('reports')

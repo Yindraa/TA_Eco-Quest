@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/app_notifier.dart';
 import '../../models/tree_model.dart';
@@ -33,6 +34,8 @@ class _HomeScreenState extends State<HomeScreen> {
   late Future<List<Map<String, dynamic>>> _availableMissionsFuture;
   late Future<TreeModel> _treeFuture;
   late Future<Map<String, dynamic>?> _quizAttemptFuture;
+
+  int _lastKnownLevel = 0;
 
   @override
   void initState() {
@@ -71,7 +74,100 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<UserModel> _fetchProfile() async {
     final service = ProfileService();
     await service.recordDailyActivity();
-    return service.getCurrentProfile();
+    final profile = await service.getCurrentProfile();
+
+    // Level Up detection
+    if (_lastKnownLevel > 0 && profile.levelId > _lastKnownLevel) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _showLevelUpDialog(profile.levelName);
+      });
+    }
+    _lastKnownLevel = profile.levelId;
+
+    return profile;
+  }
+
+  void _showLevelUpDialog(String levelName) {
+    showDialog<void>(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.6),
+      builder: (_) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(28, 32, 28, 28),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF0D4F2E), Color(0xFF1A8A50)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('⬆️', style: TextStyle(fontSize: 52)),
+              const SizedBox(height: 12),
+              Text(
+                'Level Naik!',
+                style: GoogleFonts.poppins(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.amber,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Selamat! Kamu sekarang adalah',
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  color: Colors.white.withValues(alpha: 0.8),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                levelName,
+                style: GoogleFonts.poppins(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Terus aktif dan jaga lingkungan! 🌿',
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  color: Colors.white.withValues(alpha: 0.7),
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.amber,
+                    foregroundColor: const Color(0xFF0D4F2E),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  child: Text(
+                    'Luar Biasa! 🎉',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Future<List<Map<String, dynamic>>> _fetchRecentReports() async {
