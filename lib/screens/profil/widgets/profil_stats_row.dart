@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../core/streak_utils.dart';
 import '../../../models/user_model.dart';
 
 class ProfilStatsRow extends StatelessWidget {
@@ -27,9 +28,9 @@ class ProfilStatsRow extends StatelessWidget {
           const SizedBox(width: 10),
           _StatCard(
             icon: Icons.local_fire_department_rounded,
-            label: 'Streak',
+            label: getStreakInfo(profile.currentStreak).label,
             value: '${profile.currentStreak} hari',
-            color: Colors.deepOrange,
+            color: getStreakInfo(profile.currentStreak).color,
           ),
           const SizedBox(width: 10),
           _StatCard(

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/app_notifier.dart';
+import '../../core/streak_utils.dart';
 import '../../models/tree_model.dart';
 import '../../models/user_model.dart';
 import '../../services/profile_service.dart';
@@ -88,7 +90,123 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     _lastKnownLevel = profile.levelId;
 
+    // Streak milestone detection
+    _checkStreakMilestone(profile.currentStreak);
+
     return profile;
+  }
+
+  Future<void> _checkStreakMilestone(int streak) async {
+    final milestone = kStreakCelebrationDays.lastWhere(
+      (d) => streak >= d,
+      orElse: () => -1,
+    );
+    if (milestone == -1) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final lastCelebrated = prefs.getInt('last_celebrated_streak') ?? 0;
+    if (milestone <= lastCelebrated) return;
+
+    await prefs.setInt('last_celebrated_streak', milestone);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _showStreakMilestoneDialog(milestone);
+    });
+  }
+
+  void _showStreakMilestoneDialog(int milestone) {
+    final info = getStreakInfo(milestone);
+    final gradientColors = streakCelebrationGradient(milestone);
+    final message = streakCelebrationMessage(milestone);
+
+    showDialog<void>(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.65),
+      builder: (_) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(28, 32, 28, 28),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: gradientColors,
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(info.emoji,
+                  style: const TextStyle(fontSize: 56))
+                  .animate()
+                  .scale(
+                    begin: const Offset(0.5, 0.5),
+                    duration: 600.ms,
+                    curve: Curves.easeOutBack,
+                  ),
+              const SizedBox(height: 12),
+              Text(
+                'Streak ${info.label}!',
+                style: GoogleFonts.poppins(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 14, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '$milestone Hari Berturut-turut 🔥',
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  color: Colors.white.withValues(alpha: 0.85),
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: gradientColors.last,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  child: Text(
+                    'Pertahankan! 💪',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _showLevelUpDialog(String levelName) {
@@ -218,7 +336,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       if (isLoading)
                         _buildLoadingCard()
                       else if (profile != null)
-                        GamificationCard(profile: profile)
+                        GamificationCard(
+                          profile: profile,
+                          treeFuture: _treeFuture,
+                        )
                             .animate()
                             .fadeIn(duration: 400.ms, delay: 100.ms)
                             .slideY(begin: 0.1),

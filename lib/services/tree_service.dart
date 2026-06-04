@@ -45,6 +45,27 @@ class TreeService {
     }
   }
 
+  /// Cek apakah user sudah menyiram pohon hari ini.
+  Future<bool> hasWateredToday() async {
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) return true; // jangan tampilkan reminder jika belum login
+    final today = DateTime.now().toUtc().toIso8601String().substring(0, 10);
+    try {
+      final row = await _supabase
+          .from('virtual_trees')
+          .select('daily_water_date, daily_water_count')
+          .eq('user_id', userId)
+          .maybeSingle();
+      if (row == null) return false;
+      final waterDate = row['daily_water_date'] as String?;
+      final waterCount = (row['daily_water_count'] as num?)?.toInt() ?? 0;
+      return waterDate == today && waterCount > 0;
+    } catch (e) {
+      debugPrint('hasWateredToday error: $e');
+      return true; // gagal cek → tidak tampilkan reminder
+    }
+  }
+
   /// Siram pohon. [currentStreak] dipakai untuk streak bonus (+25 jika ≥3).
   Future<Map<String, dynamic>> waterTree({int currentStreak = 0}) async {
     final userId = _supabase.auth.currentUser!.id;

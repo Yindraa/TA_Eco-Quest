@@ -1,14 +1,17 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Mengelola preferensi notifikasi.
-/// Notifikasi OS (flutter_local_notifications) dihapus karena inkompatibel
-/// dengan AGP 8.11.x — notifikasi status laporan ditampilkan sebagai
-/// in-app SnackBar melalui MainScaffold + Supabase Realtime.
+/// Mengelola preferensi notifikasi in-app.
+/// Notifikasi OS (flutter_local_notifications) tidak digunakan karena
+/// inkompatibel dengan AGP 8.11.x.
+///
+/// Streak reminder diimplementasikan sebagai in-app banner:
+/// saat app dibuka dan pohon belum disiram hari ini,
+/// MainScaffold menampilkan SnackBar pengingat.
 class NotificationService {
   static const _keyStreakReminder = 'streak_reminder_enabled';
 
   static Future<void> initialize() async {
-    // No-op — tidak perlu inisialisasi plugin eksternal
+    // No-op
   }
 
   static Future<bool> isStreakReminderEnabled() async {
@@ -19,7 +22,5 @@ class NotificationService {
   static Future<void> setStreakReminderEnabled(bool enabled) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_keyStreakReminder, enabled);
-    // TODO (future): integrate flutter_local_notifications setelah
-    // kompatibilitas AGP diselesaikan untuk scheduled streak reminder.
   }
 }

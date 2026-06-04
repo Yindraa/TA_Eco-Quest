@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/app_notifier.dart';
@@ -8,6 +9,8 @@ import '../../screens/lapor/lapor_screen.dart';
 import '../../screens/leaderboard/leaderboard_screen.dart';
 import '../../screens/peta/peta_screen.dart';
 import '../../screens/profil/profil_screen.dart';
+import '../../services/notification_service.dart';
+import '../../services/tree_service.dart';
 
 class MainScaffold extends StatefulWidget {
   const MainScaffold({super.key});
@@ -29,6 +32,49 @@ class _MainScaffoldState extends State<MainScaffold> {
   void initState() {
     super.initState();
     _subscribeToReportChanges();
+    _checkStreakReminder();
+  }
+
+  Future<void> _checkStreakReminder() async {
+    final enabled = await NotificationService.isStreakReminderEnabled();
+    if (!enabled) return;
+
+    final alreadyWatered = await TreeService().hasWateredToday();
+    if (alreadyWatered || !mounted) return;
+
+    // Tunda sedikit agar UI selesai render sebelum banner muncul
+    await Future.delayed(const Duration(milliseconds: 1500));
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Text('🌳', style: TextStyle(fontSize: 20)),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Jangan lupa siram pohonmu hari ini!',
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: const Color(0xFFE67E22),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: const Duration(seconds: 5),
+        action: SnackBarAction(
+          label: 'Ke Beranda',
+          textColor: Colors.white,
+          onPressed: () => setState(() => _currentIndex = 0),
+        ),
+      ),
+    );
   }
 
   @override
@@ -111,9 +157,113 @@ class _MainScaffoldState extends State<MainScaffold> {
     });
   }
 
+  Future<bool> _onExitConfirm() async {
+    final result = await showDialog<bool>(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.5),
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        contentPadding: const EdgeInsets.fromLTRB(24, 28, 24, 16),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF4F9F6),
+                shape: BoxShape.circle,
+              ),
+              child: const Text('👋', style: TextStyle(fontSize: 36)),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Keluar dari Eco-Quest?',
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF1A2E2A),
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Sampai jumpa lagi! Jangan lupa\nkembali untuk misi berikutnya 🌿',
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                color: Colors.grey[500],
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      side: BorderSide(color: Colors.grey[300]!),
+                    ),
+                    child: Text(
+                      'Batal',
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      backgroundColor: const Color(0xFF1A5C38),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      'Keluar',
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+          ],
+        ),
+      ),
+    );
+    return result ?? false;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        final shouldExit = await _onExitConfirm();
+        if (shouldExit && context.mounted) {
+          SystemNavigator.pop();
+        }
+      },
+      child: Scaffold(
       body: IndexedStack(
         index: _currentIndex,
         children: _screens,
@@ -159,7 +309,8 @@ class _MainScaffoldState extends State<MainScaffold> {
           ),
         ),
       ),
-    );
+    ),  // closes Scaffold
+    );  // closes PopScope
   }
 
   Widget _navItem(

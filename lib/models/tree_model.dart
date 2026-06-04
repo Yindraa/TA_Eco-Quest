@@ -43,11 +43,15 @@ class TreeModel {
   /// Jumlah siraman yang tersisa hari ini (maks 2)
   int get remainingWaterings {
     if (dailyWaterDate == null) return 2;
-    final todayUtc = DateTime.now().toUtc();
-    final wDateUtc = dailyWaterDate!.toUtc();
-    final sameDay = todayUtc.year == wDateUtc.year &&
-        todayUtc.month == wDateUtc.month &&
-        todayUtc.day == wDateUtc.day;
+    // DB menyimpan tanggal UTC ("YYYY-MM-DD"). DateTime.tryParse() membaca
+    // nilai year/month/day-nya apa adanya (sebagai angka UTC), tapi
+    // memperlakukannya sebagai local midnight — jangan panggil .toUtc()
+    // karena itu akan menggeser hari mundur untuk timezone UTC+7/+8.
+    // Bandingkan langsung dengan komponen UTC dari waktu sekarang.
+    final nowUtc = DateTime.now().toUtc();
+    final sameDay = nowUtc.year  == dailyWaterDate!.year  &&
+                    nowUtc.month == dailyWaterDate!.month &&
+                    nowUtc.day   == dailyWaterDate!.day;
     return sameDay ? (2 - dailyWaterCount).clamp(0, 2) : 2;
   }
 
