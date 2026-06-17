@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../screens/login/login_screen.dart';
+import '../screens/login/reset_password_screen.dart';
 import '../screens/splash_screen.dart';
 import '../widgets/shared/main_scaffold.dart';
 
@@ -11,8 +12,9 @@ final router = GoRouter(
     final isLoggedIn = Supabase.instance.client.auth.currentSession != null;
     final loc = state.matchedLocation;
 
-    // Biarkan splash menangani navigasinya sendiri
     if (loc == '/splash') return null;
+    // Izinkan halaman reset password selalu diakses (session recovery aktif)
+    if (loc == '/reset-password') return null;
 
     if (!isLoggedIn && loc != '/login') return '/login';
     if (isLoggedIn && loc == '/login') return '/';
@@ -28,6 +30,18 @@ final router = GoRouter(
       pageBuilder: (context, state) => CustomTransitionPage(
         key: state.pageKey,
         child: const LoginScreen(),
+        transitionDuration: const Duration(milliseconds: 400),
+        transitionsBuilder: (context, animation, _, child) => FadeTransition(
+          opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
+          child: child,
+        ),
+      ),
+    ),
+    GoRoute(
+      path: '/reset-password',
+      pageBuilder: (context, state) => CustomTransitionPage(
+        key: state.pageKey,
+        child: const ResetPasswordScreen(),
         transitionDuration: const Duration(milliseconds: 400),
         transitionsBuilder: (context, animation, _, child) => FadeTransition(
           opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),

@@ -138,7 +138,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             setSheet(() => _isResettingEmail = true);
                             try {
                               await Supabase.instance.client.auth
-                                  .resetPasswordForEmail(email);
+                                  .resetPasswordForEmail(
+                                email,
+                                redirectTo: 'ecoquest://reset-callback',
+                              );
                               if (!ctx.mounted) return;
                               Navigator.pop(ctx);
                               _showSnackBar(

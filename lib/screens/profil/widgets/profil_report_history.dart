@@ -124,10 +124,12 @@ class _ProfilReportHistoryState extends State<ProfilReportHistory> {
               }
               final reports = snap.data ?? [];
               if (reports.isEmpty) return _buildEmpty();
-              return Column(
-                children: reports
-                    .map((r) => _buildReportItem(context, r))
-                    .toList(),
+              return SizedBox(
+                height: 320,
+                child: ListView.builder(
+                  itemCount: reports.length,
+                  itemBuilder: (_, i) => _buildReportItem(context, reports[i]),
+                ),
               );
             },
           ),

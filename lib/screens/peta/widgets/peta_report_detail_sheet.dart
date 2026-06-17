@@ -252,20 +252,23 @@ class PetaReportDetailSheet extends StatelessWidget {
       children: [
         Icon(icon, size: 18, color: Colors.grey[400]),
         const SizedBox(width: 8),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label,
-                style:
-                    GoogleFonts.poppins(fontSize: 10, color: Colors.grey[500])),
-            Text(
-              value,
-              style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: const Color(0xFF1A2E2A)),
-            ),
-          ],
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label,
+                  style: GoogleFonts.poppins(
+                      fontSize: 10, color: Colors.grey[500])),
+              Text(
+                value,
+                style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: const Color(0xFF1A2E2A)),
+                softWrap: true,
+              ),
+            ],
+          ),
         ),
       ],
     );

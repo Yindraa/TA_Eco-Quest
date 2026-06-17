@@ -17,6 +17,13 @@ Future<void> main() async {
 
   await NotificationService.initialize();
 
+  // Tangani event passwordRecovery dari deep link reset password
+  Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+    if (data.event == AuthChangeEvent.passwordRecovery) {
+      router.go('/reset-password');
+    }
+  });
+
   runApp(const MyApp());
 }
 
