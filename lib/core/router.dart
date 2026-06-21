@@ -4,7 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../screens/login/login_screen.dart';
 import '../screens/login/reset_password_screen.dart';
 import '../screens/splash_screen.dart';
-import '../widgets/shared/main_scaffold.dart';
+import '../widgets/shared/role_aware_shell.dart';
 
 final router = GoRouter(
   initialLocation: '/splash',
@@ -13,7 +13,6 @@ final router = GoRouter(
     final loc = state.matchedLocation;
 
     if (loc == '/splash') return null;
-    // Izinkan halaman reset password selalu diakses (session recovery aktif)
     if (loc == '/reset-password') return null;
 
     if (!isLoggedIn && loc != '/login') return '/login';
@@ -53,7 +52,7 @@ final router = GoRouter(
       path: '/',
       pageBuilder: (context, state) => CustomTransitionPage(
         key: state.pageKey,
-        child: const MainScaffold(),
+        child: const RoleAwareShell(),
         transitionDuration: const Duration(milliseconds: 450),
         transitionsBuilder: (context, animation, _, child) {
           final curved =

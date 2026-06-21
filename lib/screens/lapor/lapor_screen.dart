@@ -30,10 +30,11 @@ class _LaporScreenState extends State<LaporScreen> {
   bool _isSubmitting = false;
   String? _locationError;
 
-  int _todayCount = 0;
-  bool _loadingQuota = true;
+  int _todayCount      = 0;
+  int _effectiveLimit  = ReportService.dailyReportLimit;
+  bool _loadingQuota   = true;
 
-  int get _remaining => (ReportService.dailyReportLimit - _todayCount).clamp(0, ReportService.dailyReportLimit);
+  int  get _remaining    => (_effectiveLimit - _todayCount).clamp(0, _effectiveLimit);
   bool get _limitReached => _remaining == 0;
 
   @override
@@ -45,8 +46,17 @@ class _LaporScreenState extends State<LaporScreen> {
 
   Future<void> _fetchQuota() async {
     try {
-      final count = await _reportService.getMyTodayReportCount();
-      if (mounted) setState(() { _todayCount = count; _loadingQuota = false; });
+      final results = await Future.wait([
+        _reportService.getMyTodayReportCount(),
+        _reportService.getEffectiveDailyLimit(),
+      ]);
+      if (mounted) {
+        setState(() {
+          _todayCount     = results[0];
+          _effectiveLimit = results[1];
+          _loadingQuota   = false;
+        });
+      }
     } catch (_) {
       if (mounted) setState(() => _loadingQuota = false);
     }
@@ -219,8 +229,9 @@ class _LaporScreenState extends State<LaporScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Laporan kamu sedang menunggu verifikasi operator.\n'
-              'EXP akan ditambahkan setelah laporan tervalidasi.',
+              'Laporan akan diverifikasi pihak Kelurahan terlebih dahulu '
+              'sebelum muncul di Peta Misi.\n'
+              'EXP & Eco Coins diberikan setelah laporan tervalidasi operator.',
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
                 fontSize: 13,
@@ -312,7 +323,7 @@ class _LaporScreenState extends State<LaporScreen> {
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
-                                  'Kamu sudah membuat ${ReportService.dailyReportLimit} laporan hari ini. '
+                                  'Kamu sudah membuat $_effectiveLimit laporan hari ini. '
                                   'Kembali lagi besok!',
                                   style: GoogleFonts.poppins(
                                       fontSize: 12,

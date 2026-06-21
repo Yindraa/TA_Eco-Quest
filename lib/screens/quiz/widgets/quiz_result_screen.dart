@@ -100,35 +100,76 @@ class QuizResultScreen extends StatelessWidget {
 
           const SizedBox(height: 16),
 
-          if (expEarned > 0)
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-              decoration: BoxDecoration(
-                color: Colors.amber.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.amber, width: 1.5),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.star_rounded,
-                      color: Colors.amber, size: 28),
-                  const SizedBox(width: 10),
-                  Text(
-                    '+$expEarned EXP diperoleh!',
-                    style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.amber[800],
+          if (expEarned > 0) ...[
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 14),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.amber, width: 1.5),
+                    ),
+                    child: Column(
+                      children: [
+                        const Icon(Icons.star_rounded,
+                            color: Colors.amber, size: 26),
+                        const SizedBox(height: 4),
+                        Text(
+                          '+$expEarned',
+                          style: GoogleFonts.poppins(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.amber[800],
+                          ),
+                        ),
+                        Text('EXP',
+                            style: GoogleFonts.poppins(
+                                fontSize: 11, color: Colors.amber[700])),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1A5C38).withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                          color: const Color(0xFF1A5C38).withValues(alpha: 0.4),
+                          width: 1.5),
+                    ),
+                    child: Column(
+                      children: [
+                        const Text('🪙', style: TextStyle(fontSize: 24)),
+                        const SizedBox(height: 4),
+                        Text(
+                          '+$expEarned',
+                          style: GoogleFonts.poppins(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF1A5C38),
+                          ),
+                        ),
+                        Text('Eco Coins',
+                            style: GoogleFonts.poppins(
+                                fontSize: 11,
+                                color: const Color(0xFF1A5C38))),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ).animate().fadeIn(delay: 600.ms).scale(
                 begin: const Offset(0.8, 0.8),
                 duration: 400.ms,
                 curve: Curves.easeOutBack),
+          ],
 
           if (alreadyCompletedBeforeStart)
             Padding(

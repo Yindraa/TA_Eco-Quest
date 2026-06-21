@@ -128,38 +128,82 @@ class _PuzzleResultViewState extends State<PuzzleResultView> {
 
               const SizedBox(height: 20),
 
-              // EXP card
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 28,
-                  vertical: 16,
-                ),
-                decoration: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
-                  borderRadius: BorderRadius.circular(18),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.35),
-                      blurRadius: 14,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text('⭐', style: TextStyle(fontSize: 22)),
-                    const SizedBox(width: 10),
-                    Text(
-                      '+${widget.expEarned} EXP',
-                      style: GoogleFonts.poppins(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+              // EXP + Coins row
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      decoration: BoxDecoration(
+                        gradient: AppColors.primaryGradient,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: 0.3),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          const Text('⭐', style: TextStyle(fontSize: 22)),
+                          const SizedBox(height: 4),
+                          Text(
+                            '+${widget.expEarned}',
+                            style: GoogleFonts.poppins(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          Text('EXP',
+                              style: GoogleFonts.poppins(
+                                  fontSize: 11,
+                                  color: Colors.white.withValues(alpha: 0.85))),
+                        ],
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.amber[50],
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                            color: Colors.amber.withValues(alpha: 0.5),
+                            width: 1.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.amber.withValues(alpha: 0.15),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          const Text('🪙', style: TextStyle(fontSize: 22)),
+                          const SizedBox(height: 4),
+                          Text(
+                            '+${widget.expEarned}',
+                            style: GoogleFonts.poppins(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.amber[800],
+                            ),
+                          ),
+                          Text('Eco Coins',
+                              style: GoogleFonts.poppins(
+                                  fontSize: 11,
+                                  color: Colors.amber[700])),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ).animate(delay: 350.ms).fadeIn().scale(curve: Curves.elasticOut),
 
               const SizedBox(height: 28),

@@ -27,11 +27,13 @@ class _MainScaffoldState extends State<MainScaffold> {
   int _homeRefreshKey = 0;
 
   RealtimeChannel? _reportChannel;
+  RealtimeChannel? _redemptionChannel;
 
   @override
   void initState() {
     super.initState();
     _subscribeToReportChanges();
+    _subscribeToRedemptionChanges();
     _checkStreakReminder();
   }
 
@@ -80,7 +82,61 @@ class _MainScaffoldState extends State<MainScaffold> {
   @override
   void dispose() {
     _reportChannel?.unsubscribe();
+    _redemptionChannel?.unsubscribe();
     super.dispose();
+  }
+
+  void _showRedemptionSnackBar(String newStatus) {
+    if (!mounted) return;
+    final (msg, color) = switch (newStatus) {
+      'completed' => (
+          'Merchandise kamu siap diambil! Hubungi pihak DLH untuk pengambilan 🎁',
+          const Color(0xFF1A5C38),
+        ),
+      'rejected' => (
+          'Penukaran merchandise ditolak. Eco Coins kamu telah dikembalikan.',
+          Colors.red[600]!,
+        ),
+      _ => (null, Colors.grey),
+    };
+    if (msg == null) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg, style: GoogleFonts.poppins(fontSize: 13)),
+        backgroundColor: color,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: const Duration(seconds: 5),
+      ),
+    );
+  }
+
+  void _subscribeToRedemptionChanges() {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return;
+
+    _redemptionChannel = Supabase.instance.client
+        .channel('redemption_status_$userId')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.update,
+          schema: 'public',
+          table: 'redemptions',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'user_id',
+            value: userId,
+          ),
+          callback: (payload) {
+            final oldStatus = payload.oldRecord['status'] as String?;
+            final newStatus = payload.newRecord['status'] as String?;
+            if (oldStatus == null || newStatus == null) return;
+            if (oldStatus == newStatus) return;
+            _showRedemptionSnackBar(newStatus);
+            homeRefreshNotifier.value++;
+          },
+        )
+        .subscribe();
   }
 
   void _showStatusSnackBar(String newStatus) {
@@ -88,7 +144,7 @@ class _MainScaffoldState extends State<MainScaffold> {
     final (msg, color) = switch (newStatus) {
       'claimed'  => ('Ada yang mengambil laporan sampahmu! 🙌', const Color(0xFF2471A3)),
       'resolved' => ('Laporan sampahmu ditindaklanjuti! 📸 Menunggu validasi.', Colors.orange[700]!),
-      'valid'    => ('Laporan tervalidasi! ✅ EXP telah ditambahkan.', const Color(0xFF1A5C38)),
+      'valid'    => ('Laporan tervalidasi! ✅ EXP & Eco Coins telah ditambahkan.', const Color(0xFF1A5C38)),
       'rejected' => ('Laporan sampahmu ditolak oleh Operator.', Colors.red[600]!),
       _          => (null, Colors.grey),
     };

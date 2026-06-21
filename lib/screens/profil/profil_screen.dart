@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../core/app_notifier.dart';
 import '../../core/theme.dart';
 import '../../models/user_model.dart';
+import '../../screens/reward/reward_screen.dart';
 import '../../services/profile_service.dart';
 import '../../services/report_service.dart';
 import 'settings_screen.dart';
@@ -79,6 +81,18 @@ class _ProfilScreenState extends State<ProfilScreen> {
     if (changed) _loadData();
   }
 
+  Future<void> _openRewardScreen() async {
+    if (_profile == null) return;
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => RewardScreen(initialCoins: _profile!.ecoCoins),
+      ),
+    );
+    // Refresh profil setelah kembali agar saldo coins + gelar terupdate
+    _loadData();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -112,6 +126,14 @@ class _ProfilScreenState extends State<ProfilScreen> {
                   ProfilLevelCard(profile: _profile!)
                       .animate()
                       .fadeIn(duration: 400.ms, delay: 160.ms),
+                  const SizedBox(height: 16),
+
+                  // Tombol Tukar Reward
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: _buildRewardBanner(),
+                  ).animate().fadeIn(duration: 400.ms, delay: 200.ms),
+
                   const SizedBox(height: 24),
                   const ProfilReportHistory()
                       .animate()
@@ -121,6 +143,73 @@ class _ProfilScreenState extends State<ProfilScreen> {
               ),
             ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildRewardBanner() {
+    final coins = _profile?.ecoCoins ?? 0;
+    return GestureDetector(
+      onTap: _openRewardScreen,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF1A5C38), Color(0xFF2E8B57)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: 0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: const Text('🎁', style: TextStyle(fontSize: 26)),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Tukar Reward',
+                    style: GoogleFonts.poppins(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Text(
+                    'Gunakan 🪙 $coins Eco Coins untuk gelar & merchandise',
+                    style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      color: Colors.white.withValues(alpha: 0.85),
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Icon(
+              Icons.arrow_forward_ios_rounded,
+              color: Colors.white,
+              size: 16,
+            ),
+          ],
+        ),
       ),
     );
   }

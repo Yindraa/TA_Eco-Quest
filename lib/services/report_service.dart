@@ -25,6 +25,25 @@ class ReportService {
 
   static const dailyReportLimit = 3;
 
+  /// Limit efektif = base 3 + bonus slot jika bonus berlaku hari ini.
+  Future<int> getEffectiveDailyLimit() async {
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) return dailyReportLimit;
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    try {
+      final data = await _supabase
+          .from('profiles')
+          .select('bonus_report_date, bonus_report_slots')
+          .eq('id', userId)
+          .single();
+      final bonusDate  = data['bonus_report_date']  as String?;
+      final bonusSlots = (data['bonus_report_slots'] as num?)?.toInt() ?? 0;
+      return dailyReportLimit + (bonusDate == today ? bonusSlots : 0);
+    } catch (_) {
+      return dailyReportLimit;
+    }
+  }
+
   /// Jumlah laporan user hari ini.
   Future<int> getMyTodayReportCount() async {
     final userId = _supabase.auth.currentUser!.id;
@@ -47,9 +66,10 @@ class ReportService {
   }) async {
     final userId = _supabase.auth.currentUser!.id;
 
-    // Cek kuota harian sebelum insert
-    final count = await getMyTodayReportCount();
-    if (count >= dailyReportLimit) {
+    // Cek kuota harian (termasuk bonus slot) sebelum insert
+    final count          = await getMyTodayReportCount();
+    final effectiveLimit = await getEffectiveDailyLimit();
+    if (count >= effectiveLimit) {
       throw Exception('daily_limit_reached');
     }
 
@@ -77,6 +97,7 @@ class ReportService {
   }
 
   /// Ambil laporan pending + claimed untuk ditampilkan di peta misi.
+  /// Hanya laporan yang sudah diverifikasi kelurahan yang tampil.
   Future<List<Map<String, dynamic>>> getMissionReports() async {
     return await _supabase
         .from('reports')
@@ -85,7 +106,39 @@ class ReportService {
           'waste_size, image_url, status, description, created_at',
         )
         .inFilter('status', ['pending', 'claimed'])
+        .eq('kelurahan_verified', true)
         .order('created_at', ascending: false);
+  }
+
+  /// Ambil laporan yang belum diverifikasi kelurahan.
+  Future<List<Map<String, dynamic>>> getUnverifiedReports() async {
+    return await _supabase
+        .from('reports')
+        .select(
+          'report_id, user_id, latitude, longitude, '
+          'waste_size, image_url, description, created_at, status',
+        )
+        .filter('kelurahan_verified', 'is', null)
+        .order('created_at', ascending: false);
+  }
+
+  /// Verifikasi atau tolak laporan — hanya untuk role kelurahan/operator/admin.
+  Future<Map<String, dynamic>> verifyReport({
+    required String reportId,
+    required bool verified,
+    String? notes,
+  }) async {
+    try {
+      final raw = await _supabase.rpc('verify_report_kelurahan', params: {
+        'p_report_id': reportId,
+        'p_verified':  verified,
+        'p_notes':     notes,
+      });
+      if (raw is Map) return Map<String, dynamic>.from(raw);
+      return {'success': false};
+    } catch (e) {
+      return {'success': false};
+    }
   }
 
   /// Hitung total laporan milik user (untuk ProfilScreen).

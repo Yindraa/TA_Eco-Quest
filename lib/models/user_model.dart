@@ -10,6 +10,8 @@ class UserModel {
   final int levelMaxPoints;
   final DateTime lastActivityAt;
   final int avatarId;
+  final int ecoCoins;
+  final String? activeTitle;
 
   const UserModel({
     required this.id,
@@ -23,6 +25,8 @@ class UserModel {
     required this.levelMaxPoints,
     required this.lastActivityAt,
     this.avatarId = 0,
+    this.ecoCoins = 0,
+    this.activeTitle,
   });
 
   factory UserModel.fromMap(Map<String, dynamic> map) {
@@ -42,6 +46,8 @@ class UserModel {
           ) ??
           DateTime.now(),
       avatarId: (map['avatar_id'] as num?)?.toInt() ?? 0,
+      ecoCoins: (map['eco_coins'] as num?)?.toInt() ?? 0,
+      activeTitle: map['active_title'] as String?,
     );
   }
 
